@@ -61,9 +61,11 @@ export async function getServerSideProps({ query }: GetServerSidePropsContext) {
 
   const index = random.integer(0, data.resource_response.data.length - 1);
 
+  const color = query?.background ?? data.resource_response.data[index].dominant_color;
+
   const image = {
     url: data.resource_response.data[index].images.orig.url,
-    color: data.resource_response.data[index].dominant_color,
+    color
   };
 
   return { props: { image } };
