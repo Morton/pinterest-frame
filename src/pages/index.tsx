@@ -1,13 +1,32 @@
-import { InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { MersenneTwister19937, Random } from "random-js";
 import { useEffect } from "react";
 
-const seed = Number(new Date().toISOString().split(':')[0].replaceAll(/[T-]/g, ''));
-const random = new Random(
-  MersenneTwister19937.seed(seed)
-);
+function getSeedString(query: GetServerSidePropsContext['query']) {
+  const span = query?.span as string
+  switch (span?.toLowerCase()) {
+    case 'day':
+      return new Date().toISOString().split('T')[0].replaceAll(/[-]/g, '')
+    case 'hour':
+    default:
+      return new Date().toISOString().split(':')[0].replaceAll(/[T-]/g, '')
+  }
+}
+function getSeed(query: GetServerSidePropsContext['query']) {
+  const seedString = getSeedString(query)
+  console.log('Seed string:', seedString)
 
-export async function getServerSideProps() {
+  const seed = Number(seedString);
+  console.log('Seed:', seed);
+
+  return seed;
+}
+
+export async function getServerSideProps({ query }: GetServerSidePropsContext) {
+  const random = new Random(
+    MersenneTwister19937.seed(getSeed(query))
+  );
+
   const url = 'https://www.pinterest.de/resource/BoardFeedResource/get?source_url=%2Fm1841%2Fmotivation%2F&data=%7B%22options%22%3A%7B%22board_id%22%3A%22521784375517072934%22%2C%22board_url%22%3A%22%2Fm1841%2Fmotivation%2F%22%2C%22currentFilter%22%3A-1%2C%22field_set_key%22%3A%22react_grid_pin%22%2C%22filter_section_pins%22%3Atrue%2C%22sort%22%3A%22default%22%2C%22layout%22%3A%22default%22%2C%22page_size%22%3A25%2C%22redux_normalize_feed%22%3Atrue%7D%2C%22context%22%3A%7B%7D%7D&_=1727011375161';
   const options = {
     method: 'GET',
